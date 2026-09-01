@@ -3,6 +3,7 @@
 | Paso | Descripción | Estado |
 |------|-------------|--------|
 | V0.1 | Three.js muestra cubo | hecho |
+| V0.1.1 | Activación y respuesta por voz (sin webcam) | en prueba |
 | V0.2 | Webcam funcionando | pendiente |
 | V0.3 | MediaPipe detecta mano | pendiente |
 | V0.4 | Landmarks visibles | pendiente |
