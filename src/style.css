@@ -27,6 +27,115 @@ body {
   height: 100%;
 }
 
+.voice-panel {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: min(25rem, calc(100% - 3rem));
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(8, 20, 30, 0.9), rgba(10, 15, 22, 0.76));
+  border: 1px solid rgba(64, 190, 255, 0.38);
+  border-radius: 8px;
+  box-shadow: 0 0 32px rgba(31, 167, 255, 0.1), inset 0 0 24px rgba(31, 167, 255, 0.04);
+  backdrop-filter: blur(10px);
+}
+
+.voice-panel__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.voice-panel__indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #68737e;
+  box-shadow: 0 0 0.8rem rgba(104, 115, 126, 0.6);
+}
+
+.voice-panel__indicator[data-status="listening"] {
+  background: #35c8ff;
+  box-shadow: 0 0 1rem rgba(53, 200, 255, 0.95);
+  animation: voice-pulse 1.5s ease-in-out infinite;
+}
+
+.voice-panel__indicator[data-status="speaking"] {
+  background: #65ffbd;
+  box-shadow: 0 0 1rem rgba(101, 255, 189, 0.9);
+}
+
+.voice-panel__indicator[data-status="error"],
+.voice-panel__indicator[data-status="unsupported"] {
+  background: #ff657a;
+  box-shadow: 0 0 1rem rgba(255, 101, 122, 0.8);
+}
+
+.voice-panel__eyebrow {
+  margin: 0 0 0.1rem;
+  color: #62caff;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+}
+
+.voice-panel h1 {
+  margin: 0;
+  color: #e7f8ff;
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+}
+
+.voice-panel__status {
+  min-height: 1.4em;
+  margin: 1.1rem 0 0.35rem;
+  color: #d8f4ff;
+  font-size: 0.95rem;
+}
+
+.voice-panel__transcript {
+  min-height: 2.6em;
+  margin: 0 0 1rem;
+  color: #8fa8b7;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.voice-panel__button {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  color: #dff7ff;
+  font: inherit;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  background: rgba(25, 143, 205, 0.16);
+  border: 1px solid rgba(78, 199, 255, 0.58);
+  border-radius: 4px;
+}
+
+.voice-panel__button:hover:not(:disabled) {
+  background: rgba(25, 143, 205, 0.3);
+}
+
+.voice-panel__button[data-active="true"] {
+  color: #9ed9ef;
+  background: rgba(16, 56, 75, 0.45);
+}
+
+.voice-panel__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@keyframes voice-pulse {
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
 .hud {
   position: absolute;
   left: 1rem;
@@ -39,4 +148,12 @@ body {
   border: 1px solid rgba(200, 208, 216, 0.2);
   border-radius: 4px;
   pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .voice-panel {
+    top: 1rem;
+    left: 1rem;
+    width: calc(100% - 2rem);
+  }
 }
