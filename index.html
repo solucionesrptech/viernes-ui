@@ -9,7 +9,25 @@
   <body>
     <div id="app">
       <canvas id="scene-canvas" aria-label="Escena 3D de Viernes"></canvas>
-      <p class="hud">Viernes V0.1 — cubo 3D</p>
+      <section class="voice-panel" aria-labelledby="voice-title">
+        <div class="voice-panel__heading">
+          <span class="voice-panel__indicator" id="voice-indicator"></span>
+          <div>
+            <p class="voice-panel__eyebrow">SISTEMA DE VOZ</p>
+            <h1 id="voice-title">VIERNES</h1>
+          </div>
+        </div>
+        <p class="voice-panel__status" id="voice-status" aria-live="polite">
+          Viernes en espera
+        </p>
+        <p class="voice-panel__transcript" id="voice-transcript">
+          Di “Hola, Viernes” o “Viernes, ¿estás despierta?”
+        </p>
+        <button class="voice-panel__button" id="voice-toggle" type="button">
+          Activar Viernes
+        </button>
+      </section>
+      <p class="hud">Viernes V0.2 — cubo 3D + voz</p>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
