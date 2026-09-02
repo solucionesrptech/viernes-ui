@@ -41,17 +41,30 @@ export type VoiceStatus =
 type VoiceAssistantOptions = {
   onStatusChange: (status: VoiceStatus, message: string) => void
   onTranscript: (transcript: string) => void
+  onVoicesChange: (voices: SpeechSynthesisVoice[], selectedVoiceUri: string) => void
 }
 
 export type VoiceAssistant = {
   isSupported: boolean
   start: () => void
   stop: () => void
+  selectVoice: (voiceUri: string) => void
+  previewVoice: () => void
   dispose: () => void
 }
 
 const WAKE_PHRASES = ['hola viernes', 'viernes estas despierta']
 const RESPONSE = 'Siempre despierta. ¿Qué vamos a construir?'
+const VOICE_STORAGE_KEY = 'viernes.voice-uri'
+const PREFERRED_FEMALE_NAMES = [
+  'dalia',
+  'elvira',
+  'helena',
+  'laura',
+  'sabina',
+  'paulina',
+  'catalina',
+]
 
 function normalizeTranscript(value: string): string {
   return value
@@ -61,6 +74,20 @@ function normalizeTranscript(value: string): string {
     .replace(/[^a-zñ\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function voiceScore(voice: SpeechSynthesisVoice): number {
+  const name = voice.name.toLocaleLowerCase('es')
+  const lang = voice.lang.toLocaleLowerCase('es')
+  let score = 0
+
+  if (lang === 'es-cl') score += 100
+  else if (lang.startsWith('es')) score += 60
+  if (PREFERRED_FEMALE_NAMES.some((candidate) => name.includes(candidate))) score += 30
+  if (name.includes('natural') || name.includes('google')) score += 20
+  if (voice.localService) score += 5
+
+  return score
 }
 
 export function createVoiceAssistant(
@@ -80,6 +107,8 @@ export function createVoiceAssistant(
       isSupported: false,
       start: () => undefined,
       stop: () => undefined,
+      selectVoice: () => undefined,
+      previewVoice: () => undefined,
       dispose: () => undefined,
     }
   }
@@ -93,6 +122,24 @@ export function createVoiceAssistant(
   let listening = false
   let speaking = false
   let disposed = false
+  let selectedVoice: SpeechSynthesisVoice | undefined
+
+  const loadVoices = () => {
+    const spanishVoices = window.speechSynthesis
+      .getVoices()
+      .filter((voice) => voice.lang.toLocaleLowerCase('es').startsWith('es'))
+      .sort((a, b) => voiceScore(b) - voiceScore(a))
+
+    const storedVoiceUri = window.localStorage.getItem(VOICE_STORAGE_KEY)
+    selectedVoice =
+      spanishVoices.find((voice) => voice.voiceURI === storedVoiceUri) ??
+      spanishVoices[0]
+
+    options.onVoicesChange(spanishVoices, selectedVoice?.voiceURI ?? '')
+  }
+
+  window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
+  loadVoices()
 
   const startListening = () => {
     if (!enabled || listening || speaking || disposed) {
@@ -106,17 +153,19 @@ export function createVoiceAssistant(
     }
   }
 
-  const speak = () => {
+  const speak = (text = RESPONSE) => {
     speaking = true
     recognition.abort()
     window.speechSynthesis.cancel()
 
-    const utterance = new SpeechSynthesisUtterance(RESPONSE)
-    utterance.lang = 'es-CL'
-    utterance.rate = 1
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.voice = selectedVoice ?? null
+    utterance.lang = selectedVoice?.lang ?? 'es-CL'
+    utterance.rate = 0.92
+    utterance.pitch = 1.04
 
     utterance.onstart = () => {
-      options.onStatusChange('speaking', RESPONSE)
+      options.onStatusChange('speaking', text)
     }
 
     utterance.onend = () => {
@@ -189,11 +238,24 @@ export function createVoiceAssistant(
       window.speechSynthesis.cancel()
       options.onStatusChange('inactive', 'Viernes en espera')
     },
+    selectVoice: (voiceUri) => {
+      selectedVoice = window.speechSynthesis
+        .getVoices()
+        .find((voice) => voice.voiceURI === voiceUri)
+
+      if (selectedVoice) {
+        window.localStorage.setItem(VOICE_STORAGE_KEY, selectedVoice.voiceURI)
+      }
+    },
+    previewVoice: () => {
+      speak('Hola. Soy Viernes y estoy lista para trabajar.')
+    },
     dispose: () => {
       disposed = true
       enabled = false
       recognition.abort()
       window.speechSynthesis.cancel()
+      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
     },
   }
 }
