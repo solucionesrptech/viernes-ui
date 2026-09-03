@@ -4,39 +4,83 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Viernes — V0.1</title>
+    <title>Viernes — AI Core</title>
   </head>
   <body>
-    <div id="app">
-      <canvas id="scene-canvas" aria-label="Escena 3D de Viernes"></canvas>
-      <section class="voice-panel" aria-labelledby="voice-title">
-        <div class="voice-panel__heading">
-          <span class="voice-panel__indicator" id="voice-indicator"></span>
+    <div id="app" class="ai-shell" data-workspace="home" data-state="idle">
+      <div class="ai-shell__atmosphere" aria-hidden="true"></div>
+      <div class="ai-shell__grain" aria-hidden="true"></div>
+
+      <header class="ai-shell__top">
+        <div class="ai-shell__identity">
+          <span class="ai-shell__mark" id="voice-indicator" data-status="inactive"></span>
           <div>
-            <p class="voice-panel__eyebrow">SISTEMA DE VOZ</p>
-            <h1 id="voice-title">VIERNES</h1>
+            <p class="ai-shell__eyebrow">SISTEMA LOCAL</p>
+            <p class="ai-shell__title">VIERNES</p>
           </div>
         </div>
-        <p class="voice-panel__status" id="voice-status" aria-live="polite">
-          Viernes en espera
-        </p>
-        <p class="voice-panel__transcript" id="voice-transcript">
-          Di “Hola, Viernes” o “Viernes, ¿estás despierta?”
-        </p>
-        <label class="voice-panel__label" for="voice-select">Voz</label>
-        <div class="voice-panel__voice-controls">
-          <select class="voice-panel__select" id="voice-select">
+        <nav class="ai-shell__nav" aria-label="Workspaces">
+          <button
+            type="button"
+            class="ai-shell__nav-btn"
+            data-workspace-target="home"
+            aria-pressed="true"
+          >
+            Home
+          </button>
+          <button
+            type="button"
+            class="ai-shell__nav-btn"
+            data-workspace-target="spatial"
+            aria-pressed="false"
+          >
+            Espacial 3D
+          </button>
+        </nav>
+      </header>
+
+      <main class="ai-shell__stage">
+        <section
+          class="workspace workspace--home"
+          data-workspace-panel="home"
+          aria-label="AI Core"
+        >
+          <div id="viernes-core-host" class="ai-shell__core-host"></div>
+          <div class="ai-shell__status-block">
+            <p class="ai-shell__status" id="voice-status" aria-live="polite">
+              Viernes en espera
+            </p>
+            <p class="ai-shell__transcript" id="voice-transcript">
+              Di “Hola, Viernes” o “Viernes, ¿estás despierta?”
+            </p>
+          </div>
+        </section>
+
+        <section
+          class="workspace workspace--spatial"
+          data-workspace-panel="spatial"
+          aria-label="Workspace espacial 3D"
+          hidden
+        >
+          <canvas id="scene-canvas" aria-label="Escena 3D de Viernes"></canvas>
+          <p class="spatial-hud">Workspace espacial — cubo 3D</p>
+        </section>
+      </main>
+
+      <aside class="ai-shell__dock" aria-label="Controles de voz">
+        <label class="ai-shell__label" for="voice-select">Voz</label>
+        <div class="ai-shell__voice-row">
+          <select class="ai-shell__select" id="voice-select">
             <option>Cargando voces…</option>
           </select>
-          <button class="voice-panel__preview" id="voice-preview" type="button">
+          <button class="ai-shell__btn ai-shell__btn--ghost" id="voice-preview" type="button">
             Probar
           </button>
         </div>
-        <button class="voice-panel__button" id="voice-toggle" type="button">
+        <button class="ai-shell__btn ai-shell__btn--primary" id="voice-toggle" type="button">
           Activar Viernes
         </button>
-      </section>
-      <p class="hud">Viernes V0.2 — cubo 3D + voz</p>
+      </aside>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
