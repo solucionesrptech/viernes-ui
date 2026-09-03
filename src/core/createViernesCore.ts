@@ -361,28 +361,28 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--seg-gap',
           cx: CX,
           cy: CY,
-          r: 275,
+          r: 288,
           fill: 'none',
         }),
       )
       g.appendChild(
         el('path', {
           class: 'vc-partial vc-partial--mid',
-          d: arcPath(268, 20, 95),
+          d: arcPath(280, 20, 95),
           fill: 'none',
         }),
       )
       g.appendChild(
         el('path', {
           class: 'vc-partial vc-partial--mid-dim',
-          d: arcPath(268, 200, 280),
+          d: arcPath(280, 200, 280),
           fill: 'none',
         }),
       )
     }),
   )
 
-  // Mid ticks + thin ring — CW faster
+  // Mid ticks + thin ring — ligeramente hacia afuera
   svg.appendChild(
     group('vc-group vc-group--mid', (g) => {
       g.appendChild(
@@ -390,7 +390,7 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--thin',
           cx: CX,
           cy: CY,
-          r: 238,
+          r: 262,
           fill: 'none',
         }),
       )
@@ -399,20 +399,20 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--dotted',
           cx: CX,
           cy: CY,
-          r: 225,
+          r: 250,
           fill: 'none',
         }),
       )
-      addTicks(g, 215, 228, 36, 'vc-tick-mid', 3)
+      addTicks(g, 242, 255, 36, 'vc-tick-mid', 3)
     }),
   )
 
-  // Moving nodes
+  // Moving nodes — desplazados hacia afuera para liberar cámara central
   svg.appendChild(
     group('vc-group vc-group--nodes', (g) => {
       const nodeAngles = [15, 95, 170, 240, 310]
       nodeAngles.forEach((deg, i) => {
-        const p = polar(205, deg)
+        const p = polar(238, deg)
         g.appendChild(
           el('circle', {
             class: i === 1 ? 'vc-node vc-node--hot' : 'vc-node',
@@ -427,14 +427,14 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--hair',
           cx: CX,
           cy: CY,
-          r: 205,
+          r: 238,
           fill: 'none',
         }),
       )
     }),
   )
 
-  // Inner technical arcs — CW
+  // Inner technical arcs — empujados hacia afuera
   svg.appendChild(
     group('vc-group vc-group--inner-a', (g) => {
       g.appendChild(
@@ -442,38 +442,38 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--seg-short',
           cx: CX,
           cy: CY,
-          r: 178,
+          r: 215,
           fill: 'none',
         }),
       )
       g.appendChild(
         el('path', {
           class: 'vc-partial vc-partial--inner',
-          d: arcPath(168, -10, 80),
+          d: arcPath(205, -10, 80),
           fill: 'none',
         }),
       )
       g.appendChild(
         el('path', {
           class: 'vc-partial vc-partial--inner-bright',
-          d: arcPath(168, 160, 250),
+          d: arcPath(205, 160, 250),
           fill: 'none',
         }),
       )
-      const ra = polar(155, 40)
-      const rb = polar(172, 40)
+      const ra = polar(192, 40)
+      const rb = polar(210, 40)
       g.appendChild(
         el('line', { class: 'vc-radial', x1: ra.x, y1: ra.y, x2: rb.x, y2: rb.y }),
       )
-      const rc = polar(155, 220)
-      const rd = polar(172, 220)
+      const rc = polar(192, 220)
+      const rd = polar(210, 220)
       g.appendChild(
         el('line', { class: 'vc-radial vc-radial--soft', x1: rc.x, y1: rc.y, x2: rd.x, y2: rd.y }),
       )
     }),
   )
 
-  // Inner rings — CCW slow
+  // Inner rings — empujados hacia afuera (fuera de la cámara ~r130)
   svg.appendChild(
     group('vc-group vc-group--inner-b', (g) => {
       g.appendChild(
@@ -481,7 +481,7 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--thin',
           cx: CX,
           cy: CY,
-          r: 145,
+          r: 178,
           fill: 'none',
         }),
       )
@@ -490,27 +490,26 @@ export function createViernesCore(
           class: 'vc-ring vc-ring--faint',
           cx: CX,
           cy: CY,
-          r: 132,
+          r: 165,
           fill: 'none',
         }),
       )
       g.appendChild(
         el('path', {
           class: 'vc-partial vc-partial--deep',
-          d: arcPath(120, 50, 140),
+          d: arcPath(152, 50, 140),
           fill: 'none',
         }),
       )
       g.appendChild(
         el('path', {
           class: 'vc-partial vc-partial--deep-dim',
-          d: arcPath(120, 210, 310),
+          d: arcPath(152, 210, 310),
           fill: 'none',
         }),
       )
-      // micro particles
       for (let i = 0; i < 8; i += 1) {
-        const p = polar(138, i * 45 + 8)
+        const p = polar(170, i * 45 + 8)
         g.appendChild(
           el('circle', {
             class: 'vc-particle',
@@ -524,34 +523,24 @@ export function createViernesCore(
     }),
   )
 
-  // Centro limpio + modulador de voz (sin texto)
+  // Cámara central amplia (~32% del diámetro) + waveform horizontal únicamente
   let modulator: VoiceModulatorHandle | null = null
   svg.appendChild(
     group('vc-group vc-group--center', (g) => {
       g.appendChild(
         el('circle', {
-          class: 'vc-center-glow',
+          class: 'vc-chamber',
           cx: CX,
           cy: CY,
-          r: 96,
-          fill: 'none',
+          r: 128,
         }),
       )
       g.appendChild(
         el('circle', {
-          class: 'vc-ring vc-ring--center',
+          class: 'vc-chamber-glow',
           cx: CX,
           cy: CY,
-          r: 100,
-          fill: 'none',
-        }),
-      )
-      g.appendChild(
-        el('circle', {
-          class: 'vc-ring vc-ring--center-inner',
-          cx: CX,
-          cy: CY,
-          r: 88,
+          r: 128,
           fill: 'none',
         }),
       )
@@ -574,11 +563,18 @@ export function createViernesCore(
     root,
     setAudioEnergy: (value: number) => {
       applyEnergy(value)
-      modulator?.update({ audioEnergy: value, active: value > 0.12 })
+      modulator?.update({
+        audioEnergy: value,
+        active: value > 0.12,
+      })
     },
     setAudioFrame: (frame) => {
       applyEnergy(frame.audioEnergy)
-      modulator?.update(frame)
+      modulator?.update({
+        active: Boolean(frame.active),
+        audioEnergy: frame.audioEnergy,
+        waveformData: frame.waveformData,
+      })
     },
     dispose: () => {
       modulator?.dispose()

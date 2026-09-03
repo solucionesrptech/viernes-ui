@@ -364,9 +364,58 @@ body {
 }
 
 .vc-group--center {
-  animation: center-breathe calc(4.8s - (var(--v-audio-energy) * 1.8s)) ease-in-out infinite;
-  transform-box: view-box;
-  transform-origin: 400px 400px;
+  animation: none;
+}
+
+.vc-chamber {
+  fill: rgba(2, 6, 9, 0.82);
+  stroke: none;
+}
+
+.vc-chamber-glow {
+  stroke: rgba(90, 212, 255, 0.16);
+  stroke-width: calc(1 + var(--v-audio-energy) * 1.5);
+  filter: url(#vc-glow-soft);
+  opacity: calc(0.55 + var(--v-audio-energy) * 0.25);
+}
+
+.vc-modulator {
+  pointer-events: none;
+}
+
+.vc-modulator__bars {
+  opacity: 0.95;
+}
+
+.vc-modulator__bar {
+  stroke: #5adfff;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.vc-modulator__line {
+  stroke: #c4f4ff;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.vc-modulator__glow {
+  stroke: #2eb8ff;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  filter: url(#vc-glow-bloom);
+}
+
+.vc-modulator[data-active='true'] .vc-modulator__bar {
+  stroke: #9aecff;
+}
+
+.vc-modulator[data-active='true'] .vc-modulator__line {
+  stroke: #f0fcff;
 }
 
 .vc-ambient {
@@ -421,66 +470,6 @@ body {
   stroke-width: 2;
   stroke-dasharray: 6 4 2 4 10 8;
   opacity: 0.4;
-}
-
-.vc-ring--center {
-  stroke-width: 1.2;
-  opacity: calc(0.28 + var(--v-audio-energy) * 0.25);
-}
-
-.vc-ring--center-inner {
-  stroke-width: 0.9;
-  opacity: calc(0.18 + var(--v-audio-energy) * 0.2);
-}
-
-.vc-center-glow {
-  stroke: #5ad4ff;
-  stroke-width: calc(1.2 + var(--v-audio-energy) * 2.2);
-  opacity: calc(0.22 + var(--v-audio-energy) * 0.35);
-  filter: url(#vc-glow-bloom);
-}
-
-.vc-modulator {
-  pointer-events: none;
-}
-
-.vc-modulator__pulse {
-  stroke: #3ec7ff;
-  stroke-width: 1;
-  fill: none;
-  opacity: 0.12;
-}
-
-.vc-modulator__wave {
-  stroke: #9ae9ff;
-  stroke-width: 1.4;
-  fill: rgba(62, 199, 255, 0.04);
-  filter: url(#vc-glow-soft);
-}
-
-.vc-modulator__bar {
-  stroke: #7ae0ff;
-  stroke-width: 1.35;
-  stroke-linecap: round;
-}
-
-.vc-modulator__particle {
-  fill: #dff8ff;
-}
-
-.vc-modulator__core-ring {
-  stroke: #5adfff;
-  stroke-width: 1.4;
-  filter: url(#vc-glow-soft);
-}
-
-.vc-modulator[data-active='true'] .vc-modulator__bar {
-  stroke: #b7f1ff;
-}
-
-.vc-modulator[data-level='peak'] .vc-modulator__core-ring {
-  stroke: #ffffff;
-  stroke-width: 2;
 }
 
 .vc-guide {
@@ -656,16 +645,6 @@ body {
 @keyframes spin-ccw {
   to {
     transform: rotate(-360deg);
-  }
-}
-
-@keyframes center-breathe {
-  0%,
-  100% {
-    opacity: 0.85;
-  }
-  50% {
-    opacity: 1;
   }
 }
 

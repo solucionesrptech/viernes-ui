@@ -66,10 +66,9 @@ const startProbeLoop = () => {
   const tick = () => {
     const sample = audioProbe.sample()
     core.setAudioFrame({
-      audioEnergy: sample.audioEnergy,
-      frequencyData: sample.frequencyData,
-      waveformData: sample.waveformData,
-      active: speaking || sample.audioEnergy > 0.12,
+        active: speaking || sample.audioEnergy > 0.12,
+        audioEnergy: sample.audioEnergy,
+        waveformData: sample.waveformData,
     })
     probeFrame = window.requestAnimationFrame(tick)
   }
