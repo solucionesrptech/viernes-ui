@@ -1,5 +1,7 @@
 type SpeechRecognitionEventLike = Event & {
+  resultIndex: number
   results: ArrayLike<{
+    isFinal?: boolean
     0: {
       transcript: string
     }
@@ -54,7 +56,15 @@ export type VoiceAssistant = {
 }
 
 const CORE_BASE_URL = 'http://127.0.0.1:8000'
-const WAKE_PHRASES = ['hola viernes', 'viernes estas despierta']
+const WAKE_PHRASES = [
+  'hola viernes',
+  'hola vienes',
+  'hola bienes',
+  'ola viernes',
+  'viernes estas despierta',
+  'viernes estas despierto',
+]
+const WAKE_WINDOW_MS = 3500
 const VOICE_STORAGE_KEY = 'viernes.voice-uri'
 const PREFERRED_FEMALE_NAMES = [
   'dalia',
@@ -74,6 +84,21 @@ function normalizeTranscript(value: string): string {
     .replace(/[^a-zñ\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function matchesWakePhrase(normalized: string): boolean {
+  if (WAKE_PHRASES.some((phrase) => normalized.includes(phrase))) {
+    return true
+  }
+
+  // Frases partidas típicas de SpeechRecognition continuous.
+  const hasHola = /\bhola\b/.test(normalized) || /\bola\b/.test(normalized)
+  const hasViernes =
+    /\bviernes\b/.test(normalized) ||
+    /\bvienes\b/.test(normalized) ||
+    /\bbienes\b/.test(normalized)
+
+  return hasHola && hasViernes
 }
 
 function voiceScore(voice: SpeechSynthesisVoice): number {
@@ -125,6 +150,8 @@ export function createVoiceAssistant(
   let selectedVoice: SpeechSynthesisVoice | undefined
   let currentAudio: HTMLAudioElement | null = null
   let currentAudioUrl: string | null = null
+  let recentFinals: Array<{ text: string; at: number }> = []
+  let lastWakeAt = 0
 
   const loadVoices = () => {
     const spanishVoices = window.speechSynthesis
@@ -202,16 +229,23 @@ export function createVoiceAssistant(
         startListening()
       }
 
-      await currentAudio.play()
+      try {
+        await currentAudio.play()
+      } catch (playError) {
+        console.warn('[Viernes Voz] Autoplay bloqueado; usando voz del navegador.', playError)
+        cleanupAudio()
+        speaking = false
+        previewBrowserVoice('Bienvenido, señor.')
+      }
     } catch (error) {
       cleanupAudio()
       speaking = false
-      console.error('[Viernes Voz] Falló la respuesta del Core.', error)
+      console.error('[Viernes Voz] Falló la respuesta del Core; fallback local.', error)
       options.onStatusChange(
-        'error',
-        'No pude conectar con Viernes Core en 127.0.0.1:8000.',
+        'speaking',
+        'Core no disponible — usando voz local.',
       )
-      startListening()
+      previewBrowserVoice('Bienvenido, señor.')
     }
   }
 
@@ -272,19 +306,61 @@ export function createVoiceAssistant(
   }
 
   recognition.onresult = (event) => {
-    const lastResult = event.results[event.results.length - 1]
-    const transcript = lastResult?.[0]?.transcript?.trim() ?? ''
-
-    if (!transcript) {
+    if (speaking) {
       return
     }
 
-    options.onTranscript(transcript)
+    const now = Date.now()
+    const pieces: string[] = []
 
-    const normalized = normalizeTranscript(transcript)
-    if (WAKE_PHRASES.some((phrase) => normalized.includes(phrase))) {
-      void speakWithCore(transcript)
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      const result = event.results[i]
+      if (!result) {
+        continue
+      }
+      if (result.isFinal === false) {
+        continue
+      }
+      const piece = result[0]?.transcript?.trim()
+      if (piece) {
+        pieces.push(piece)
+      }
     }
+
+    if (pieces.length === 0) {
+      const fallback = event.results[event.results.length - 1]?.[0]?.transcript?.trim()
+      if (fallback) {
+        pieces.push(fallback)
+      }
+    }
+
+    if (pieces.length === 0) {
+      return
+    }
+
+    const transcript = pieces.join(' ').trim()
+    options.onTranscript(transcript)
+    console.info('[Viernes Voz] Escuchado:', transcript)
+
+    recentFinals.push({ text: transcript, at: now })
+    recentFinals = recentFinals.filter((entry) => now - entry.at <= WAKE_WINDOW_MS)
+
+    const combined = normalizeTranscript(
+      recentFinals.map((entry) => entry.text).join(' '),
+    )
+
+    if (!matchesWakePhrase(combined)) {
+      return
+    }
+
+    if (now - lastWakeAt < 2000) {
+      return
+    }
+
+    lastWakeAt = now
+    recentFinals = []
+    console.info('[Viernes Voz] Wake detectado:', combined)
+    void speakWithCore(combined || transcript)
   }
 
   return {

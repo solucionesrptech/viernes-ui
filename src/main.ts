@@ -77,7 +77,12 @@ const startProbeLoop = () => {
 
 startProbeLoop()
 
-const WAKE_HINTS = ['hola viernes', 'viernes estas despierta']
+const WAKE_HINTS = [
+  'hola viernes',
+  'hola vienes',
+  'ola viernes',
+  'viernes estas despierta',
+]
 
 function normalizeTranscript(value: string): string {
   return value
@@ -87,6 +92,15 @@ function normalizeTranscript(value: string): string {
     .replace(/[^a-zñ\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function looksLikeWake(normalized: string): boolean {
+  if (WAKE_HINTS.some((phrase) => normalized.includes(phrase))) {
+    return true
+  }
+  const hasHola = /\bhola\b/.test(normalized) || /\bola\b/.test(normalized)
+  const hasViernes = /\bviernes\b/.test(normalized) || /\bvienes\b/.test(normalized)
+  return hasHola && hasViernes
 }
 
 const renderVoiceStatus = (status: VoiceStatus, message: string) => {
@@ -103,7 +117,7 @@ const voice = createVoiceAssistant({
   onTranscript: (transcript) => {
     voiceTranscript.textContent = `Escuché: “${transcript}”`
     const normalized = normalizeTranscript(transcript)
-    if (WAKE_HINTS.some((phrase) => normalized.includes(phrase))) {
+    if (looksLikeWake(normalized)) {
       store.setState('thinking')
     }
   },
