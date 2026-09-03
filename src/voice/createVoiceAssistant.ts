@@ -53,8 +53,8 @@ export type VoiceAssistant = {
   dispose: () => void
 }
 
+const CORE_BASE_URL = 'http://127.0.0.1:8000'
 const WAKE_PHRASES = ['hola viernes', 'viernes estas despierta']
-const RESPONSE = 'Siempre despierta. ¿Qué vamos a construir?'
 const VOICE_STORAGE_KEY = 'viernes.voice-uri'
 const PREFERRED_FEMALE_NAMES = [
   'dalia',
@@ -123,6 +123,8 @@ export function createVoiceAssistant(
   let speaking = false
   let disposed = false
   let selectedVoice: SpeechSynthesisVoice | undefined
+  let currentAudio: HTMLAudioElement | null = null
+  let currentAudioUrl: string | null = null
 
   const loadVoices = () => {
     const spanishVoices = window.speechSynthesis
@@ -153,7 +155,67 @@ export function createVoiceAssistant(
     }
   }
 
-  const speak = (text = RESPONSE) => {
+  const cleanupAudio = () => {
+    currentAudio?.pause()
+    currentAudio = null
+
+    if (currentAudioUrl) {
+      URL.revokeObjectURL(currentAudioUrl)
+      currentAudioUrl = null
+    }
+  }
+
+  const speakWithCore = async (text: string) => {
+    speaking = true
+    recognition.abort()
+    window.speechSynthesis.cancel()
+    cleanupAudio()
+    options.onStatusChange('speaking', 'Viernes está respondiendo…')
+
+    try {
+      const response = await fetch(`${CORE_BASE_URL}/respond/tts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Viernes Core respondió ${response.status}`)
+      }
+
+      const audioBlob = await response.blob()
+      currentAudioUrl = URL.createObjectURL(audioBlob)
+      currentAudio = new Audio(currentAudioUrl)
+
+      currentAudio.onended = () => {
+        cleanupAudio()
+        speaking = false
+        startListening()
+      }
+
+      currentAudio.onerror = () => {
+        cleanupAudio()
+        speaking = false
+        options.onStatusChange('error', 'No pude reproducir la respuesta de Viernes Core.')
+        startListening()
+      }
+
+      await currentAudio.play()
+    } catch (error) {
+      cleanupAudio()
+      speaking = false
+      console.error('[Viernes Voz] Falló la respuesta del Core.', error)
+      options.onStatusChange(
+        'error',
+        'No pude conectar con Viernes Core en 127.0.0.1:8000.',
+      )
+      startListening()
+    }
+  }
+
+  const previewBrowserVoice = (text: string) => {
     speaking = true
     recognition.abort()
     window.speechSynthesis.cancel()
@@ -175,7 +237,7 @@ export function createVoiceAssistant(
 
     utterance.onerror = () => {
       speaking = false
-      options.onStatusChange('error', 'No pude reproducir la respuesta de voz.')
+      options.onStatusChange('error', 'No pude reproducir la vista previa de voz.')
       startListening()
     }
 
@@ -221,7 +283,7 @@ export function createVoiceAssistant(
 
     const normalized = normalizeTranscript(transcript)
     if (WAKE_PHRASES.some((phrase) => normalized.includes(phrase))) {
-      speak()
+      void speakWithCore(transcript)
     }
   }
 
@@ -235,6 +297,7 @@ export function createVoiceAssistant(
       enabled = false
       speaking = false
       recognition.abort()
+      cleanupAudio()
       window.speechSynthesis.cancel()
       options.onStatusChange('inactive', 'Viernes en espera')
     },
@@ -248,12 +311,13 @@ export function createVoiceAssistant(
       }
     },
     previewVoice: () => {
-      speak('Hola. Soy Viernes y estoy lista para trabajar.')
+      previewBrowserVoice('Hola. Soy Viernes y estoy lista para trabajar.')
     },
     dispose: () => {
       disposed = true
       enabled = false
       recognition.abort()
+      cleanupAudio()
       window.speechSynthesis.cancel()
       window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
     },
